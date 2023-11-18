@@ -1,66 +1,37 @@
 import random
 import sys
 from math import cos, sin, pi
-
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5 import uic
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QApplication, QLabel
+from PyQt5.QtWidgets import QMainWindow, QApplication
 
 
-class Suprematism(QWidget):
+class Suprematism(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setGeometry(300, 300, 1000, 1000)
-        self.setWindowTitle('РЕЗНЯЯЯ')
-        self.setMouseTracking(True)
-        self.qp = QPainter()
-        self.status = None
-        self.coords = None
+        uic.loadUi('UI.ui', self)
+        self.do_paint = False
+        self.coords = (100, 100)
+        self.pushButton.clicked.connect(self.click)
+
+    def draw(self, qp):
+        r = random.randint(20, 100)
+        qp.setBrush(QColor(255, 255, 0))
+        qp.drawEllipse(int(self.coords[0] - r / 2), int(self.coords[1] - r / 2), r, r)
 
     def paintEvent(self, event):
-        self.qp = QPainter()
-        self.qp.begin(self)
-        self.draw()
-        self.qp.end()
+        if self.do_paint:
+            qp = QPainter()
+            qp.begin(self)
+            self.draw(qp)
+            qp.end()
+        self.do_paint = False
 
-    def draw(self):
-        if self.status == 1:
-            r = random.randint(20, 100)
-            self.qp.setBrush(QColor(*[random.randint(0, 255) for _ in range(3)]))
-            self.qp.drawEllipse(int(self.coords[0] - r / 2), int(self.coords[1] - r / 2), r, r)
-
-        elif self.status == 2:
-            s = random.randint(20, 100)
-            self.qp.setBrush(QColor(*[random.randint(0, 255) for _ in range(3)]))
-            self.qp.drawRect(int(self.coords[0] - s / 2), int(self.coords[1] - s / 2), s, s)
-
-        elif self.status == 3:
-            x, y = self.coords
-            A = random.randint(20, 100)
-
-            coords = [QPoint(x, y - A),
-                      QPoint(int(x + cos(7 * pi / 6) * A),
-                             int(y - sin(7 * pi / 6) * A)),
-                      QPoint(int(x + cos(11 * pi / 6) * A),
-                             int(y - sin(11 * pi / 6) * A))]
-            self.qp.setBrush(QColor(*[random.randint(0, 255) for _ in range(3)]))
-            self.qp.drawPolygon(coords)
-
-    def mouseMoveEvent(self, event):
-        self.coords = (event.x(), event.y())
-
-    def mousePressEvent(self, event):
-        self.coords = (event.x(), event.y())
-        if event.button() == Qt.LeftButton:
-            self.status = 1
-        if event.button() == Qt.RightButton:
-            self.status = 2
+    def click(self):
+        self.coords = (random.randint(20, self.width() - 20), random.randint(20, self.height() - 20))
+        self.do_paint = True
         self.update()
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Space:
-            self.status = 3
-            self.update()
 
 
 if __name__ == '__main__':
